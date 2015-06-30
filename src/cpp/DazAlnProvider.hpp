@@ -46,10 +46,7 @@
 #include "ProgramOpts.hpp"
 #include "Alignment.hpp"
 #include "AlnProvider.hpp"
-
-// Dazzler headers
-#include "DB.h"
-#include "align.h"
+#include "DazzlerAdapter.hpp"
 
 // Represents one record from the LAS file, essentially a thin container for
 // a dazzler overlap so we can manage things on the stack.

@@ -3,10 +3,10 @@ include boost.mk
 
 COMMON_OBJECTS := Alignment.o AlnGraphBoost.o
 PBDAGCON_OBJECTS := BlasrM5AlnProvider.o main.o SimpleAligner.o
-DAZCON_OBJECTS := DB.o align.o DazAlnProvider.o dazcon.o
+DAZCON_OBJECTS := QV.o DB.o align.o DazAlnProvider.o dazcon.o
 
-CXXFLAGS = -O3 -std=c++11 -Wall -Wuninitialized -pedantic -I third-party \
-		   -I $(BOOST_HEADERS)
+CXXFLAGS += -O3 -std=c++11 -Wall -Wuninitialized -pedantic -I third-party \
+		   -I $(BOOST_HEADERS) -I ../../daligner
 
 CFLAGS = -O3 -Wall -Wextra -fno-strict-aliasing
 
