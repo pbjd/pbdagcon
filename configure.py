@@ -44,17 +44,12 @@ def cd(nwd):
     log('cd %r <- %r' %(cwd, nwd))
 
 def fetch_gtest(build_dir):
-    gtest_version = 'gtest-1.7.0'
-    gtest_uri = 'https://googletest.googlecode.com/files/%s.zip' %gtest_version
+    gtest_version = 'release-1.7.0'
+    gtest_uri = 'https://github.com/google/googletest.git'
     gdir = os.path.join(build_dir, 'test', 'cpp', gtest_version)
     if not os.path.isdir(gdir):
-        #mkdirs(gdir)
-        zipfile = gdir + '.zip'
-        if not os.path.isfile(zipfile):
-            get_gtest_cmd = 'curl -L %s --output %s' %(gtest_uri, zipfile)
-            system(get_gtest_cmd)
-        install_gtest_cmd = 'unzip -q %s -d %s' %(zipfile, os.path.join(build_dir, 'test', 'cpp'))
-        system(install_gtest_cmd)
+        get_gtest_cmd = 'git clone --branch %s --depth 1 %s %s' %(gtest_version, gtest_uri, gdir)
+        system(get_gtest_cmd)
     assert os.path.isdir(gdir)
     return gdir
 
