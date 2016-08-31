@@ -8,4 +8,5 @@ dazcon
 test_*
 boost_*
 gtest-*
+release-*
 defines.mk
