@@ -5,10 +5,10 @@ THISDIR:=$(dir $(lastword ${MAKEFILE_LIST}))
 
 COMMON_OBJECTS := Alignment.o AlnGraphBoost.o
 PBDAGCON_OBJECTS := BlasrM5AlnProvider.o main.o SimpleAligner.o
-DAZCON_OBJECTS := DB.o QV.o align.o DazAlnProvider.o dazcon.o
+DAZCON_OBJECTS := DB.o QV.o align.o DazAlnProvider.o dazcon.o SimpleAligner.o
 
 CPPFLAGS += -MMD -MP
-CXXFLAGS = -O3 -std=c++11 -Wall -Wuninitialized -pedantic
+CXXFLAGS ?= -O3 -std=c++11 -Wall -Wuninitialized -pedantic
 CFLAGS = -O3 -Wall -Wextra -fno-strict-aliasing
 
 INCDIRS := \

@@ -32,7 +32,7 @@ public:
 
     char strand;
 
-    // query and target strings must be equal length
+    // query and target strings must be equal length, after alignment
     std::string qstr;
     std::string tstr;
 

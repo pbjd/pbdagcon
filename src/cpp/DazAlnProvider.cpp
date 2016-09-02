@@ -4,10 +4,12 @@
 #include <sstream>
 #include <cstdlib>
 #include <cstdio>
+#include <cmath>
 #include <algorithm>
 #include <numeric>
 #include <set>
 #include "DazAlnProvider.hpp"
+#include "SimpleAligner.hpp"
 
 #undef DEBUG
 
@@ -92,7 +94,8 @@ bool DazAlnProvider::nextTarget(std::vector<dagcon::Alignment> &dest) {
         if (rec.ovl.aread != trg_->id || covl_ == novl_) {
             int tid = trg_->id + 1;
             if (filter == 0 || tfilt.find(tid) != tfilt.end()) {
-                trg_->getAlignments(dest, popts_.maxHits, popts_.sortCov);
+                //trg_->getAlignments(dest, popts_.maxHits, popts_.sortCov);
+                trg_->getBlasrAlignments(dest, popts_.maxHits, popts_.sortCov);
                 if (dest.size() < popts_.minCov) {
                     dest.clear();
                     skipTarget = true;
@@ -218,6 +221,22 @@ int TargetHit::aend() {
     return records.back().ovl.path.aepos;
 }
 
+int TargetHit::amin() {
+    return records.front().ovl.path.abpos;
+}
+
+int TargetHit::amax() {
+    return records.back().ovl.path.aepos;
+}
+
+int TargetHit::bmin() {
+    return records.front().ovl.path.bbpos;
+}
+
+int TargetHit::bmax() {
+    return records.back().ovl.path.bepos;
+}
+
 // Simplify unit testing, don't burden with malloc'd
 // daligner structures.
 Target::Target(): needsFree_(false) { }
@@ -312,7 +331,7 @@ void Target::getAlignments(std::vector<dagcon::Alignment> &alns, unsigned int ma
             char* aseq, *bseq;
             int amin, amax;
             int bmin, bmax;
-            Alignment aln;
+            Dalignment aln;
             aln.path = &(ovl.path);
             aln.alen  = length;
             aln.blen  = hit->blen;
@@ -368,6 +387,66 @@ void Target::getAlignments(std::vector<dagcon::Alignment> &alns, unsigned int ma
     }
 }
 
+void Target::getBlasrAlignments(std::vector<dagcon::Alignment> &alns, unsigned int max, bool sortCov) {
+    SimpleAligner blasr;
+    sortHits(sortCov);
+    auto hbeg = hits.begin();
+    auto hend = hits.size() > max ? hbeg + max : hits.end();
+    for (auto& hit = hbeg; hit != hend; ++hit) {
+        dagcon::Alignment dest;
+
+        // target (a) id, query (b) id
+        std::stringstream tid, qid;
+        tid << (hit->aread+1);  
+        qid << (hit->bread+1);
+        dest.id = tid.str();
+        dest.sid = qid.str();
+        dest.tlen = hit->alen;
+
+        // start/stop on target
+        dest.start = hit->abeg() + 1;
+        dest.end = hit->aend() + 1;
+        
+        // extract subsequences
+        char* aseq, *bseq;
+        int amin = hit->amin();
+        int amax = hit->amax();
+        int bmin = hit->bmin();
+        int bmax = hit->bmax();
+        aseq = Load_Subread(&db_, hit->aread, amin, amax, abuffer_, 0);
+        bseq = Load_Subread(&db_, hit->bread, bmin, bmax, bbuffer_, 0);
+
+        // if necessary, complement bread
+        if (COMP(hit->flags))
+            Complement_Seq(bseq,bmax-bmin);
+
+        dest.tstr.resize(amax-amin);
+        for (int i = 0; i < amax-amin; i++) 
+            dest.tstr[i] = ToU[(int)aseq[i]];
+
+        dest.qstr.resize(std::abs(bmax-bmin));
+        for (int i = 0; i < bmax-bmin; i++) 
+            dest.qstr[i] = ToU[(int)bseq[i]];
+
+#ifdef DEBUG        
+        if (COMP(hit->flags)) 
+            std::cout << "-";
+        else
+            std::cout << "+";
+        std::cout << std::endl;
+        std::cout << dest << std::endl; 
+#endif        
+
+        // pass to SimpleAligner
+        blasr(dest);
+        alns.push_back(dest); 
+
+#ifdef DEBUG
+        std::cout << dest << std::endl; 
+#endif        
+    }
+}
+
 bool cmpHitOvlScore(const TargetHit& l, const TargetHit& r) {
     return l.ovlScore > r.ovlScore;
 }
@@ -380,7 +459,7 @@ float invertedSum(float x, unsigned int y) {
     return x + 1/(float)y;
 }
 
-void decodeAlignment(Alignment* src, dagcon::Alignment& dest) {
+void decodeAlignment(Dalignment* src, dagcon::Alignment& dest) {
     int i, j, tlen, c, p;
     char* a, *b; // pointers to the sequence
     int* trace = (int *) src->path->trace;

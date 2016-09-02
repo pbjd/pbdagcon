@@ -67,8 +67,15 @@ public:
 
     void computeOvlScore(bool proper=false);
 
+    // hit coordinates on the a-read
     int abeg();
     int aend();
+
+    // for extracting subsequences
+    int amin();
+    int amax();
+    int bmin();
+    int bmax();
 
     int alen;
     int blen;
@@ -108,7 +115,14 @@ public:
     // Sorts overlaps based on a two-phase scoring system
     void sortHits(bool sortCov);
 
+    // Gets standard daligner alignments
     void getAlignments(std::vector<dagcon::Alignment> &alns, unsigned int max, bool sortCov);
+
+    // Generate blasr alignment based on TargetHit
+    // XXX: does this better maintain seed read integrity?
+    // XXX: does it negatively affect falcon assembly?
+    // XXX: does it make things too slow?
+    void getBlasrAlignments(std::vector<dagcon::Alignment> &alns, unsigned int max, bool sortCov);
 
     // ID of the target
     int id;
@@ -181,4 +195,4 @@ float invertedSum(float x, unsigned int y);
 /// Convert dazzler alignment into a dagcon alignment. Eventually, we
 /// should update the alignment graph to process the dazzler alignment
 /// directly, but this will be useful for debugging purposes.
-void decodeAlignment(Alignment* src, dagcon::Alignment& dest);
+void decodeAlignment(Dalignment* src, dagcon::Alignment& dest);
