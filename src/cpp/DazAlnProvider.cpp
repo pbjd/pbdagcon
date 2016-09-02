@@ -4,7 +4,6 @@
 #include <sstream>
 #include <cstdlib>
 #include <cstdio>
-#include <cmath>
 #include <algorithm>
 #include <numeric>
 #include <set>
@@ -424,7 +423,7 @@ void Target::getBlasrAlignments(std::vector<dagcon::Alignment> &alns, unsigned i
         for (int i = 0; i < amax-amin; i++) 
             dest.tstr[i] = ToU[(int)aseq[i]];
 
-        dest.qstr.resize(std::abs(bmax-bmin));
+        dest.qstr.resize(bmax-bmin);
         for (int i = 0; i < bmax-bmin; i++) 
             dest.qstr[i] = ToU[(int)bseq[i]];
 
